@@ -4,7 +4,8 @@ import (
         "fmt"
         "flag"
         "strconv"
-        "myshows"
+        
+        "github.com/pymhd/myshows"
 )
 
 func must(err error) {

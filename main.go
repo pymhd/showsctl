@@ -1,12 +1,14 @@
 package main
 
 import (
-	"flag"
 	"fmt"
-	log "github.com/pymhd/go-logging"
-	"myshows"
+	"flag"
 	"sort"
-	bot "tlgrm-bot"
+
+	"github.com/pymhd/myshows"
+	"github.com/pymhd/tlgrm-bot"
+	log "github.com/pymhd/go-logging"
+	
 )
 
 var (
