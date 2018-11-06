@@ -1,0 +1,12 @@
+data: /tmp
+
+myshows:
+  id: id
+  secret: secret
+  user: user
+  password: password
+
+tlgrm:
+  key: "bot_key"
+  notify:
+    - 93999207
