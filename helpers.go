@@ -4,13 +4,13 @@ import (
         "fmt"
         "flag"
         "strconv"
-        
-        "github.com/pymhd/myshows"
+        "myshows"
+        log "github.com/pymhd/go-logging"
 )
 
 func must(err error) {
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
 }
 
