@@ -3,8 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"time"
 	log "github.com/pymhd/go-logging"
-	"myshows"
+	"github.com/pymhd/myshows"
 	"sort"
 	bot "tlgrm-bot"
 )
@@ -13,6 +14,7 @@ var (
 	//sm StorManager initialezed in stor.go - json cache
 	cfg      *Config
 	top      int
+	info     int
 	watch    bool
 	unwatch  bool
 	list     bool
@@ -33,6 +35,7 @@ func init() {
 	flag.BoolVar(&skipflag, "skip", false, "Do not actually send (for instance if empty cache)")
 	flag.BoolVar(&vflag, "v", false, "Enable logging")
 	flag.IntVar(&top, "top", 0, "Number of episodes to show")
+	flag.IntVar(&info, "info", 0, "Search info about show")
 	flag.Parse()
 	
 	if vflag {
@@ -56,6 +59,8 @@ func main() {
 		SearchShow(search)
 	case top > 0:
 		ShowTopEpisodes(top)
+	case info > 0:
+		GetShowInfo(info)
 	default:
 		//if no flags (main purpose of script)
 		NotifyUsers()
@@ -81,7 +86,12 @@ func MarkEpisodesAsWatched() {
 }
 
 func NotifyUsers() {
+	defer func(now time.Time) {
+		log.Debugf("Whole process of user notification took: %v\n", time.Since(now))
+	}(time.Now())
+	
 	log.Debugln("Starting notification procedure")
+	//get guarantee list of episodes
 	u := getUnwatchedEpisodes()
 	log.Debugf("Found %d episodes to proceed\n", len(u))
 	
@@ -132,6 +142,10 @@ func NotifyUsers() {
 }
 
 func ListAllShows() {
+	defer func(now time.Time) {
+                log.Debugf("List all my shows took: %v\n", time.Since(now))
+        }(time.Now())
+
 	shows := getShowList()
 
 	order := make([]int, len(shows))
@@ -143,13 +157,26 @@ func ListAllShows() {
 	}
 
 	sort.Ints(order)
+
+	var prefix string
 	for _, id := range order {
-		fmt.Printf("%d : %s\n", id, showsMap[id].TitleOriginal)
+		//mark watched episodes
+		if sm.IsMonitored(id) {
+			prefix = "*"
+		} else {
+			prefix = " "
+		}
+		
+		fmt.Printf("%d %s%s\n", id, prefix, showsMap[id].TitleOriginal)
 	}
 
 }
 
 func SearchShow(s string) {
+        defer func(now time.Time) {
+                log.Debugf("Searching shows took: %v\n", time.Since(now))
+        }(time.Now())
+
 	shows, err := myshows.SearchShow(s)
 	must(err)
 	
@@ -169,12 +196,35 @@ func SearchShow(s string) {
 }
 
 func ShowTopEpisodes(t int) {
+        defer func(now time.Time) {
+                log.Debugf("Get top episodes took: %v\n", time.Since(now))
+        }(time.Now())
+
 	shows, err := myshows.GetTopShows(t)
 	must(err)
 	
 	for n, s := range shows {
 		fmt.Printf("%3d %-33s %.2f   (id: %d)\n", n + 1, s.Show.TitleOriginal, s.Show.Rating, s.Show.Id)
 	}
+}
+
+func GetShowInfo(id int) {
+	defer func(now time.Time) {
+                log.Debugf("Get show info took: %v\n", time.Since(now))
+        }(time.Now())
+        
+        show, err := myshows.GetShowById(id)
+        must(err)
+        
+        desc := getImdbDesc(show.Imdb)
+        fmt.Printf("Name:     %s\nYear:     %d\nSeasons:  %d\nGenres:   ", show.TitleOriginal, show.Year, show.Seasons)
+        for _, genreId := range show.Genres {
+        	fmt.Printf("%s, ", Genres[genreId])
+        }
+        fmt.Printf("\n")
+        fmt.Printf("Rating:   %.2f\nStatus:   %s\n", show.Rating, show.Status)
+	fmt.Printf("Coutry:   %s\n", show.Country)        
+	fmt.Printf("Desc: %s\n", desc)
 }
 
 
@@ -193,16 +243,23 @@ func getShowList() []myshows.ShowDesc {
 func getUnwatchedEpisodes() []myshows.EpisodeDesc {
 	ret, err := myshows.GetNextEpisodes(sm.Token)
 	if err != nil {
+		log.Debugf("Failed to get episode list from 1st attempt (%s). Going to renew token\n", err)
 		renewToken()
+		log.Debugln("Attemting to get episodes second time")
 		ret, err = myshows.GetNextEpisodes(sm.Token)
 	}
 	if err != nil {
 		log.Fatalln(err)
 	}
+	//log.Debugln("Successfuly got episode list")
 	return ret
 }
 
 func renewToken() {
+	defer func(now time.Time) {
+		log.Debugf("Token renewal took: %v\n", time.Since(now))
+	}(time.Now())
+	
 	token, err := myshows.GetToken(cfg.MyShows.Id, cfg.MyShows.Secret, cfg.MyShows.User, cfg.MyShows.Password)
 	must(err)
 	sm.Token = token

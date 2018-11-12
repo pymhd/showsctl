@@ -1,11 +1,12 @@
 package main
 
 import (
-        "fmt"
-        "flag"
-        "strconv"
-        "myshows"
-        log "github.com/pymhd/go-logging"
+	"flag"
+	"fmt"
+	"strconv"
+	
+	"github.com/pymhd/myshows"	
+	log "github.com/pymhd/go-logging"
 )
 
 func must(err error) {
@@ -14,19 +15,19 @@ func must(err error) {
 	}
 }
 
-
 func genNotificationCaption(o myshows.EpisodeDesc) string {
-        return fmt.Sprintf("New episode of %s was released\nSeason: %d, Episode: %d", o.Show.Title, o.Episode.SeasonNum, o.Episode.EpisodeNum)
+	return fmt.Sprintf("New episode of %s was released\nSeason: %d, Episode: %d", o.Show.Title, o.Episode.SeasonNum, o.Episode.EpisodeNum)
 }
 
 func parseIds() []int {
-        ids := flag.Args()
-        ret := make([]int, len(ids))
+	ids := flag.Args()
+	ret := make([]int, len(ids))
 
-        for n, id := range ids {
-                i, err := strconv.Atoi(id)
-                must(err)
-                ret[n] = i
-        }
-        return ret
+	for n, id := range ids {
+		i, err := strconv.Atoi(id)
+		must(err)
+		ret[n] = i
+	}
+	return ret
 }
+
