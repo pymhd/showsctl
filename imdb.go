@@ -46,7 +46,7 @@ func getStoryLine(body []byte) []byte {
 }
 
 func getImdbDesc(id int) string {
-	url := fmt.Sprintf("%s%d/", imdbUrl, id) 
+	url := fmt.Sprintf("%s%07d/", imdbUrl, id) 
 	
 	b := getUrlBody(url)
 	story := getStoryLine(b)
