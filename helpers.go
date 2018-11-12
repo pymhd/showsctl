@@ -4,9 +4,9 @@ import (
 	"flag"
 	"fmt"
 	"strconv"
-	
-	"github.com/pymhd/myshows"	
+
 	log "github.com/pymhd/go-logging"
+	"github.com/pymhd/myshows"
 )
 
 func must(err error) {
@@ -30,4 +30,3 @@ func parseIds() []int {
 	}
 	return ret
 }
-

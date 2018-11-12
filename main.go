@@ -3,10 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
-	"time"
 	log "github.com/pymhd/go-logging"
 	"github.com/pymhd/myshows"
 	"sort"
+	"time"
 	bot "tlgrm-bot"
 )
 
@@ -22,7 +22,6 @@ var (
 	vflag    bool
 	search   string
 	conffile string
-	
 )
 
 func init() {
@@ -37,7 +36,7 @@ func init() {
 	flag.IntVar(&top, "top", 0, "Number of episodes to show")
 	flag.IntVar(&info, "info", 0, "Search info about show")
 	flag.Parse()
-	
+
 	if vflag {
 		log.EnableDebug()
 	}
@@ -71,10 +70,10 @@ func main() {
 func MarkEpisodesAsWatched() {
 	ids := parseIds()
 	log.Debugf("Next ids will be marked as watched: %v\n", ids)
-	
+
 	//add as watched in local stor
 	sm.AddToWatchlist(ids...)
-	
+
 	for _, id := range ids {
 		err := myshows.SetShowAsWatching(sm.Token, id)
 		if err != nil {
@@ -89,19 +88,19 @@ func NotifyUsers() {
 	defer func(now time.Time) {
 		log.Debugf("Whole process of user notification took: %v\n", time.Since(now))
 	}(time.Now())
-	
+
 	log.Debugln("Starting notification procedure")
 	//get guarantee list of episodes
 	u := getUnwatchedEpisodes()
 	log.Debugf("Found %d episodes to proceed\n", len(u))
-	
+
 	var proceeded int
-	
+
 	for _, obj := range u {
 		if sm.IsMonitored(obj.Show.Id) {
 			if !sm.IsSent(obj.Episode.Id) {
 				proceeded++
-				
+
 				cap := genNotificationCaption(obj)
 				log.Debugf("Found unhandled episode. Cap:\n%s\n", cap)
 				if skipflag {
@@ -143,8 +142,8 @@ func NotifyUsers() {
 
 func ListAllShows() {
 	defer func(now time.Time) {
-                log.Debugf("List all my shows took: %v\n", time.Since(now))
-        }(time.Now())
+		log.Debugf("List all my shows took: %v\n", time.Since(now))
+	}(time.Now())
 
 	shows := getShowList()
 
@@ -166,67 +165,66 @@ func ListAllShows() {
 		} else {
 			prefix = " "
 		}
-		
+
 		fmt.Printf("%d %s%s\n", id, prefix, showsMap[id].TitleOriginal)
 	}
 
 }
 
 func SearchShow(s string) {
-        defer func(now time.Time) {
-                log.Debugf("Searching shows took: %v\n", time.Since(now))
-        }(time.Now())
+	defer func(now time.Time) {
+		log.Debugf("Searching shows took: %v\n", time.Since(now))
+	}(time.Now())
 
 	shows, err := myshows.SearchShow(s)
 	must(err)
-	
+
 	order := make([]int, len(shows))
 	showsMap := make(map[int]myshows.Show, 0)
-	
+
 	for n, show := range shows {
 		showsMap[show.Id] = show
 		order[n] = show.Id
 	}
-	
+
 	sort.Ints(order)
-	
+
 	for _, id := range order {
 		fmt.Printf("%-7d %-33s %.2f\n", showsMap[id].Id, showsMap[id].TitleOriginal, showsMap[id].Rating)
 	}
 }
 
 func ShowTopEpisodes(t int) {
-        defer func(now time.Time) {
-                log.Debugf("Get top episodes took: %v\n", time.Since(now))
-        }(time.Now())
+	defer func(now time.Time) {
+		log.Debugf("Get top episodes took: %v\n", time.Since(now))
+	}(time.Now())
 
 	shows, err := myshows.GetTopShows(t)
 	must(err)
-	
+
 	for n, s := range shows {
-		fmt.Printf("%3d %-33s %.2f   (id: %d)\n", n + 1, s.Show.TitleOriginal, s.Show.Rating, s.Show.Id)
+		fmt.Printf("%3d %-33s %.2f   (id: %d)\n", n+1, s.Show.TitleOriginal, s.Show.Rating, s.Show.Id)
 	}
 }
 
 func GetShowInfo(id int) {
 	defer func(now time.Time) {
-                log.Debugf("Get show info took: %v\n", time.Since(now))
-        }(time.Now())
-        
-        show, err := myshows.GetShowById(id)
-        must(err)
-        
-        desc := getImdbDesc(show.Imdb)
-        fmt.Printf("Name:     %s\nYear:     %d\nSeasons:  %d\nGenres:   ", show.TitleOriginal, show.Year, show.Seasons)
-        for _, genreId := range show.Genres {
-        	fmt.Printf("%s, ", Genres[genreId])
-        }
-        fmt.Printf("\n")
-        fmt.Printf("Rating:   %.2f\nStatus:   %s\n", show.Rating, show.Status)
-	fmt.Printf("Coutry:   %s\n", show.Country)        
+		log.Debugf("Get show info took: %v\n", time.Since(now))
+	}(time.Now())
+
+	show, err := myshows.GetShowById(id)
+	must(err)
+
+	desc := getImdbDesc(show.Imdb)
+	fmt.Printf("Name:     %s\nYear:     %d\nSeasons:  %d\nGenres:   ", show.TitleOriginal, show.Year, show.Seasons)
+	for _, genreId := range show.Genres {
+		fmt.Printf("%s, ", Genres[genreId])
+	}
+	fmt.Printf("\n")
+	fmt.Printf("Rating:   %.2f\nStatus:   %s\n", show.Rating, show.Status)
+	fmt.Printf("Coutry:   %s\n", show.Country)
 	fmt.Printf("Desc: %s\n", desc)
 }
-
 
 func getShowList() []myshows.ShowDesc {
 	ret, err := myshows.GetShowList(sm.Token)
@@ -259,7 +257,7 @@ func renewToken() {
 	defer func(now time.Time) {
 		log.Debugf("Token renewal took: %v\n", time.Since(now))
 	}(time.Now())
-	
+
 	token, err := myshows.GetToken(cfg.MyShows.Id, cfg.MyShows.Secret, cfg.MyShows.User, cfg.MyShows.Password)
 	must(err)
 	sm.Token = token

@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	log "github.com/pymhd/go-logging"
 	"os"
-	"time"
 	"sync"
+	"time"
 )
 
 const (
@@ -68,9 +68,9 @@ func (s *ShowsManager) IsSent(id int) bool {
 func (s *ShowsManager) Save() {
 	now := time.Now()
 	defer func() {
-        	log.Debugf("Storing data to disk took: %v\n", time.Since(now))
+		log.Debugf("Storing data to disk took: %v\n", time.Since(now))
 	}()
-	
+
 	f, err := os.Create(DefStorFile)
 	if err != nil {
 		log.Errorf("Save file failed: %s\n", err)
